@@ -1,0 +1,1212 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a1128">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="description" content="Лунный сон — саундскейпы, истории для сна, таймер и утренняя медитация на изобилие">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Лунный сон — саундскейпы для сна</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#070d24;--card:rgba(255,255,255,.055);--card2:rgba(255,255,255,.10);
+  --line:rgba(190,205,255,.14);--ink:#e9edff;--dim:#93a0d6;--dim2:#6b77ad;
+  --acc:#93a8ff;--acc2:#b9a7ff;--gold:#ffd9a3;--ok:#7fd8b8;--danger:#ff9c9c;
+  --r:22px;--tabH:66px;
+}
+html,body{height:100%}
+body{background:#02040c;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans',sans-serif;
+  display:flex;justify-content:center;align-items:center;min-height:100vh;min-height:100dvh;overflow:hidden;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;touch-action:manipulation}
+
+#phone{position:relative;width:100%;height:100vh;height:100dvh;max-width:430px;overflow:hidden;
+  background:radial-gradient(130% 90% at 50% -10%,#111c42 0%,#0a1128 46%,#060b1f 100%)}
+@media(min-width:520px){
+  body{padding:20px}
+  #phone{height:min(93vh,900px);border-radius:40px;
+    box-shadow:0 40px 110px rgba(0,0,0,.75),0 0 0 1px rgba(160,180,255,.09)}
+}
+#sky{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+#ui{position:absolute;inset:0;display:flex;flex-direction:column;z-index:2;
+  transition:opacity .55s ease,transform .55s ease}
+.immersive #ui{opacity:0;transform:scale(1.03);pointer-events:none}
+
+header{padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 8px;display:flex;align-items:center;gap:10px;flex:none}
+.iconbtn{width:40px;height:40px;border-radius:14px;background:var(--card);border:1px solid var(--line);
+  display:grid;place-items:center;transition:transform .15s ease,background .2s;flex:none}
+.iconbtn:active{transform:scale(.9)}
+.iconbtn svg{width:20px;height:20px}
+#moonBtn{color:var(--gold);border-color:rgba(255,217,163,.25)}
+.htitle{flex:1;text-align:center;line-height:1.2}
+.htitle b{display:block;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.htitle span{display:block;font-size:11px;color:var(--dim2);margin-top:2px;font-variant-numeric:tabular-nums}
+
+main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  padding:4px 16px calc(var(--tabH) + env(safe-area-inset-bottom,0px) + 118px);scrollbar-width:none}
+main::-webkit-scrollbar{display:none}
+.page{display:none}
+.page.active{display:block;animation:pageIn .3s ease}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.pageTitle{font-size:24px;font-weight:700;margin:10px 2px 2px}
+.pageSub{font-size:13px;color:var(--dim);margin:2px 2px 14px;line-height:1.45}
+.secTitle{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2);font-weight:600;margin:16px 2px 8px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);margin-bottom:12px}
+
+/* ---------- hero ---------- */
+.hero{background:linear-gradient(150deg,rgba(147,168,255,.16),rgba(185,167,255,.05) 55%,var(--card));
+  border-color:rgba(147,168,255,.25);position:relative;overflow:hidden}
+.hero .tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc);font-weight:600}
+.hero h2{font-size:22px;line-height:1.25;margin:8px 0 5px;font-weight:700}
+.hero .meta{color:var(--dim);font-size:13px}
+.heroRow{display:flex;align-items:center;gap:16px;margin-top:16px}
+.playbig{position:relative;width:78px;height:78px;border-radius:50%;flex:none;display:grid;place-items:center;color:#0b1130;
+  background:linear-gradient(140deg,#aebcff,#cabdff);box-shadow:0 10px 30px rgba(130,150,255,.4);transition:transform .15s}
+.playbig:active{transform:scale(.93)}
+.playbig svg.ring{position:absolute;inset:-7px;width:92px;height:92px;transform:rotate(-90deg);pointer-events:none}
+.playbig .ric{width:30px;height:30px;position:relative;z-index:1}
+.heroSide .state{font-size:14px;font-weight:600}
+.heroSide .remain{font-size:12.5px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* ---------- chips ---------- */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 6px}
+.chip{padding:10px 15px;border-radius:15px;background:var(--card);border:1px solid var(--line);
+  font-size:13.5px;color:var(--dim);transition:.18s}
+.chip.on{color:#0b1130;background:linear-gradient(140deg,#aebcff,#cabdff);border-color:transparent;font-weight:700;
+  box-shadow:0 6px 18px rgba(130,150,255,.3)}
+
+/* ---------- moon card ---------- */
+.mooncard{display:flex;align-items:center;gap:14px}
+.mooncard .moonic{width:44px;height:44px;border-radius:16px;display:grid;place-items:center;color:var(--gold);
+  background:rgba(255,217,163,.10);border:1px solid rgba(255,217,163,.22);flex:none}
+.mooncard b{font-size:16px}
+.mooncard .sub{font-size:12px;color:var(--dim);margin-top:2px}
+
+/* ---------- library grid ---------- */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.scard{position:relative;min-height:122px;display:flex;flex-direction:column;gap:7px;align-items:flex-start;
+  text-align:left;padding:14px;transition:border-color .2s,background .2s,transform .1s}
+.scard:active{transform:scale(.97)}
+.scard .ic{width:34px;height:34px;color:var(--acc)}
+.scard b{font-size:14.5px;font-weight:650;line-height:1.2}
+.scard .sub{font-size:11.5px;color:var(--dim2);line-height:1.35}
+.scard .st{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;background:var(--card2);transition:.2s}
+.scard .st svg{width:14px;height:14px}
+.scard.playing{border-color:rgba(147,168,255,.6);
+  background:linear-gradient(160deg,rgba(147,168,255,.17),var(--card));
+  box-shadow:0 0 26px rgba(120,140,255,.18)}
+.eq{display:flex;gap:2.5px;height:13px;align-items:flex-end}
+.eq i{width:3px;background:var(--acc);border-radius:2px;animation:eq 1s infinite ease-in-out}
+.eq i:nth-child(2){animation-delay:.18s}.eq i:nth-child(3){animation-delay:.36s}
+@keyframes eq{0%,100%{height:4px}50%{height:13px}}
+
+/* ---------- mixer ---------- */
+.mixer .mixHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.mixer .mixTitle{font-size:16px;font-weight:700}
+.srow{display:flex;align-items:center;gap:12px;margin-top:12px}
+.srow .sname{width:64px;font-size:13px;color:var(--dim);flex:none}
+.srow output{width:34px;text-align:right;font-size:12px;color:var(--dim2);font-variant-numeric:tabular-nums;flex:none}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:30px;background:transparent;min-width:0}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;
+  background:linear-gradient(90deg,var(--acc) var(--fill,50%),rgba(255,255,255,.13) var(--fill,50%))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:#fff;margin-top:-7px;box-shadow:0 0 14px rgba(147,168,255,.9)}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:rgba(255,255,255,.13)}
+input[type=range]::-moz-range-progress{height:6px;border-radius:3px;background:var(--acc)}
+input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-radius:50%;background:#fff;
+  box-shadow:0 0 14px rgba(147,168,255,.9)}
+.masterRow{border-top:1px solid var(--line);margin-top:14px;padding-top:4px}
+
+/* ---------- buttons ---------- */
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:13px 18px;border-radius:16px;
+  font-size:14px;font-weight:600;transition:.15s}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(140deg,#8ea6ff,#b9a7ff);color:#0b1130;border:none;
+  box-shadow:0 8px 24px rgba(120,140,255,.35)}
+.btn.ghost{background:transparent;color:var(--dim)}
+.btn.small{padding:9px 15px;font-size:13px;border-radius:13px}
+.trow{display:flex;gap:9px;margin-top:14px}
+.trow .btn{flex:1;padding:13px 6px}
+
+/* ---------- stories ---------- */
+.story{display:flex;gap:14px;align-items:center;cursor:pointer;transition:.15s}
+.story:active{transform:scale(.98)}
+.cover{width:62px;height:62px;border-radius:18px;flex:none;display:grid;place-items:center;color:rgba(255,255,255,.9)}
+.cover svg{width:26px;height:26px}
+.story b{font-size:15px;display:block}
+.story .smin{font-size:12px;color:var(--dim);margin-top:3px}
+.story .mini{display:inline-block;font-size:10.5px;color:var(--dim2);border:1px solid var(--line);
+  padding:3px 8px;border-radius:10px;margin-top:7px;margin-right:5px}
+
+/* ---------- timer ---------- */
+.ringWrap{position:relative;width:236px;height:236px;margin:10px auto 4px}
+.ringWrap svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ringCenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#timerRemain{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+#timerScene{font-size:12.5px;color:var(--dim);max-width:170px;text-align:center;line-height:1.3}
+.hint{font-size:12px;color:var(--dim2);line-height:1.5;margin-top:12px;text-align:center}
+
+/* ---------- account ---------- */
+.statGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stat{margin-bottom:0;display:flex;flex-direction:column;gap:3px}
+.stat b{font-size:26px;font-weight:750}
+.stat span{font-size:12px;color:var(--dim)}
+.stat .sic{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;margin-bottom:6px;
+  background:rgba(255,217,163,.12);color:var(--gold)}
+.stat .sic svg{width:18px;height:18px}
+.stat .sic.blue{background:rgba(147,168,255,.13);color:var(--acc)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:112px;padding-top:6px}
+.bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+.bar i{width:100%;max-width:28px;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,#93a8ff,#5f6fd0);
+  min-height:4px;display:block;transition:height .5s ease}
+.bar.zero i{background:rgba(255,255,255,.10)}
+.bar span{font-size:10px;color:var(--dim2)}
+.achs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ach{display:flex;gap:10px;align-items:center;padding:10px 11px;border-radius:15px;
+  background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.ach .aic{width:34px;height:34px;border-radius:12px;display:grid;place-items:center;flex:none;
+  background:rgba(255,217,163,.13);color:var(--gold)}
+.ach .aic svg{width:17px;height:17px}
+.ach b{font-size:12.5px;display:block;line-height:1.25}
+.ach span{font-size:10.5px;color:var(--dim2)}
+.ach.locked{opacity:.4;filter:grayscale(.7)}
+.linkbtn{display:block;margin:6px auto 0;font-size:12px;color:var(--dim2);text-decoration:underline;padding:8px}
+
+/* ---------- tabbar ---------- */
+#tabbar{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;gap:2px;
+  padding:7px 8px calc(env(safe-area-inset-bottom,0px) + 8px);
+  background:linear-gradient(180deg,rgba(8,13,35,.5),rgba(5,9,26,.94));
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px 5px;border-radius:14px;
+  color:var(--dim2);font-size:10.5px;font-weight:500;transition:color .2s;position:relative}
+.tab svg{width:22px;height:22px}
+.tab.active{color:var(--acc)}
+.tab.active::after{content:'';position:absolute;bottom:1px;width:4px;height:4px;border-radius:50%;
+  background:var(--acc);box-shadow:0 0 8px var(--acc)}
+
+/* ---------- now playing pill ---------- */
+#np{position:absolute;left:14px;right:14px;bottom:calc(var(--tabH) + env(safe-area-inset-bottom,0px) + 12px);
+  z-index:3;display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:19px;
+  background:rgba(10,16,40,.88);border:1px solid var(--line);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transform:translateY(90px);opacity:0;transition:.35s;cursor:pointer;pointer-events:none}
+#np.show{transform:none;opacity:1;pointer-events:auto}
+#np .eq{height:11px;flex:none}
+#npName{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+#npRemain{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums;flex:none}
+#npStop{width:34px;height:34px;border-radius:12px;background:var(--card2);display:grid;place-items:center;flex:none}
+#npStop svg{width:13px;height:13px}
+
+/* ---------- toast / hint ---------- */
+#toast{position:absolute;left:50%;bottom:calc(var(--tabH) + env(safe-area-inset-bottom,0px) + 74px);
+  transform:translateX(-50%) translateY(12px);background:rgba(12,18,44,.94);border:1px solid var(--line);
+  padding:11px 18px;border-radius:16px;font-size:13px;opacity:0;transition:.35s;z-index:7;pointer-events:none;
+  max-width:86%;text-align:center;line-height:1.4}
+#toast.show{opacity:1;transform:translateX(-50%)}
+#ihint{position:absolute;top:calc(env(safe-area-inset-top,0px) + 28px);left:0;right:0;text-align:center;
+  color:var(--dim);font-size:13px;opacity:0;transition:opacity .8s;z-index:4;pointer-events:none;padding:0 30px;line-height:1.5}
+#ihint.show{opacity:.9}
+
+/* ---------- install tip ---------- */
+.tip{display:flex;align-items:center;gap:12px;border-color:rgba(147,168,255,.3)}
+.tip .tic{width:38px;height:38px;border-radius:13px;display:grid;place-items:center;background:rgba(147,168,255,.14);color:var(--acc);flex:none}
+.tip .tic svg{width:19px;height:19px}
+.tip p{flex:1;font-size:12.5px;color:var(--dim);line-height:1.4}
+.tip p b{color:var(--ink)}
+
+/* ---------- story overlay ---------- */
+#story{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,rgba(10,17,40,.97),rgba(6,11,31,.99));
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  opacity:0;pointer-events:none;transition:opacity .4s}
+#story.open{opacity:1;pointer-events:auto}
+#story .stWrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:26px 30px calc(env(safe-area-inset-bottom,0px) + 30px);text-align:center}
+#storyBack{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:16px;z-index:2}
+.cover.big{width:86px;height:86px;border-radius:26px;margin-bottom:20px}
+.cover.big svg{width:36px;height:36px}
+#stTitle{font-size:21px;font-weight:700;margin-bottom:22px}
+#stLine{font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:1.65;color:#d5dcff;
+  min-height:150px;display:flex;align-items:center;opacity:0;transform:translateY(8px);transition:opacity 1.2s,transform 1.2s;
+  max-width:320px}
+#stLine.show{opacity:1;transform:none}
+.stProg{width:min(240px,70%);height:3px;border-radius:2px;background:rgba(255,255,255,.1);margin:26px 0 8px;overflow:hidden}
+.stProg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#93a8ff,#b9a7ff);border-radius:2px;transition:width .6s}
+#stStep{font-size:11px;color:var(--dim2);margin-bottom:20px}
+.stCtl{display:flex;gap:10px;justify-content:center}
+#story .hint{margin-top:22px}
+
+/* ---------- meditation ---------- */
+#tabbar .tab{font-size:10px;white-space:nowrap}
+.medSeek{margin-top:16px}
+.medTimes{display:flex;justify-content:space-between;font-size:11.5px;color:var(--dim2);
+  margin-top:-4px;font-variant-numeric:tabular-nums}
+.medRow .btn{padding:11px 6px;font-size:13px}
+.moonic.lotusic{color:var(--acc);background:rgba(147,168,255,.12);border-color:rgba(147,168,255,.25)}
+</style>
+</head>
+<body>
+<div id="phone">
+  <canvas id="sky"></canvas>
+
+  <div id="ui">
+    <header>
+      <button id="moonBtn" class="iconbtn" aria-label="Режим погружения">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.6A8.7 8.7 0 1 1 9.4 3.7a7 7 0 1 0 10.9 10.9z"/></svg>
+      </button>
+      <div class="htitle"><b>Лунный сон</b><span id="clock">--:--</span></div>
+      <button id="muteBtn" class="iconbtn" aria-label="Звук"></button>
+    </header>
+
+    <main id="main">
+
+      <section class="page active" id="page-home">
+        <div id="installCard" class="card tip" hidden>
+          <div class="tic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v11m0 0 4-4m-4 4-4-4"/><path d="M5 17v2.4c0 .9.7 1.6 1.6 1.6h10.8c.9 0 1.6-.7 1.6-1.6V17"/></svg></div>
+          <p><b>Установить как приложение?</b><br>Иконка появится на главном экране.</p>
+          <button id="installBtn" class="btn small primary">Установить</button>
+          <button id="installSkip" class="btn small ghost">Позже</button>
+        </div>
+
+        <div style="height:8px"></div>
+        <section class="card hero">
+          <div class="tag">Избранное на сегодня</div>
+          <h2>Тихий дождь над ночным городом</h2>
+          <p class="meta">45 минут · дождь и ветер · зацикленный</p>
+          <div class="heroRow">
+            <button id="heroBtn" class="playbig" aria-label="Начать сеанс сна">
+              <svg class="ring" viewBox="0 0 92 92">
+                <circle cx="46" cy="46" r="43" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3.5"/>
+                <circle id="heroRing" cx="46" cy="46" r="43" fill="none" stroke="#ffffff" stroke-width="3.5"
+                  stroke-linecap="round" stroke-dasharray="270.2" stroke-dashoffset="270.2"/>
+              </svg>
+              <span class="ric" id="heroIc"></span>
+            </button>
+            <div class="heroSide">
+              <div class="state" id="heroState">Коснитесь, чтобы уснуть</div>
+              <div class="remain" id="heroRemain">сеанс 45 минут</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="secTitle">Быстрый выбор</div>
+        <div class="chips" id="quickChips"></div>
+
+        <div class="card mooncard">
+          <div class="moonic"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.6A8.7 8.7 0 1 1 9.4 3.7a7 7 0 1 0 10.9 10.9z"/></svg></div>
+          <div>
+            <b><span id="moonPct">0</span>% ночного пути</b>
+            <div class="sub" id="moonSub"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-library">
+        <h2 class="pageTitle">Библиотека</h2>
+        <p class="pageSub">Зацикленные саундскейпы без начала и конца — просто поток звука.</p>
+        <div class="grid" id="sceneGrid"></div>
+
+        <div class="card mixer">
+          <div class="mixHead">
+            <div class="mixTitle">Микшер-кокон</div>
+            <button id="mixerBtn" class="btn small primary">Играть</button>
+          </div>
+          <p class="pageSub" style="margin-bottom:2px">Смешайте дождь, ветер и огонь в своих пропорциях.</p>
+          <div class="srow"><span class="sname">Дождь</span><input type="range" id="volRain" min="0" max="100"><output id="outRain"></output></div>
+          <div class="srow"><span class="sname">Ветер</span><input type="range" id="volWind" min="0" max="100"><output id="outWind"></output></div>
+          <div class="srow"><span class="sname">Огонь</span><input type="range" id="volFire" min="0" max="100"><output id="outFire"></output></div>
+          <div class="srow masterRow"><span class="sname">Общая</span><input type="range" id="volMaster" min="0" max="100"><output id="outMaster"></output></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-stories">
+        <h2 class="pageTitle">Истории для сна</h2>
+        <p class="pageSub">Тихий закадровый голос и мягкий фоновый гул унесут вас в сон.</p>
+        <div id="storyList"></div>
+      </section>
+
+      <section class="page" id="page-meditation">
+        <h2 class="pageTitle">Медитация</h2>
+        <p class="pageSub">Утренняя практика, которая настраивает весь день на изобилие.</p>
+
+        <section class="card hero">
+          <div class="tag">Практика утра</div>
+          <h2>Утренняя медитация на изобилие</h2>
+          <p class="meta"><span id="medDur">— минут</span> · голосовая запись · лучше в наушниках</p>
+          <div class="heroRow">
+            <button id="medBtn" class="playbig" aria-label="Слушать медитацию">
+              <svg class="ring" viewBox="0 0 92 92">
+                <circle cx="46" cy="46" r="43" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="3.5"/>
+                <circle id="medRing" cx="46" cy="46" r="43" fill="none" stroke="#ffffff" stroke-width="3.5"
+                  stroke-linecap="round" stroke-dasharray="270.2" stroke-dashoffset="270.2"/>
+              </svg>
+              <span class="ric" id="medIc"></span>
+            </button>
+            <div class="heroSide">
+              <div class="state" id="medState">Коснитесь, чтобы начать</div>
+              <div class="remain" id="medRemain">медитация утра</div>
+            </div>
+          </div>
+
+          <div class="medSeek">
+            <input type="range" id="medSeek" min="0" max="1000" step="1" value="0" aria-label="Позиция в записи">
+            <div class="medTimes"><span id="medCur">0:00</span><span id="medTotal">--:--</span></div>
+          </div>
+          <div class="trow medRow">
+            <button class="btn" id="medBack15">−15 сек</button>
+            <button class="btn" id="medFwd15">+15 сек</button>
+            <button class="btn ghost" id="medStop">Стоп</button>
+          </div>
+          <div class="chips" id="medSpeed" style="margin-top:6px"></div>
+        </section>
+
+        <div class="card mooncard">
+          <div class="moonic lotusic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6c1.6 1.8 2.4 3.6 2.4 5.4 0 1.6-.8 3-2.4 4.3-1.6-1.3-2.4-2.7-2.4-4.3 0-1.8.8-3.6 2.4-5.4z"/><path d="M12 14.3c-2.4-1.8-4.9-2.3-7.6-1.5 2 3.4 4.6 5.1 7.6 5.1s5.6-1.7 7.6-5.1c-2.7-.8-5.2-.3-7.6 1.5z"/></svg></div>
+          <div>
+            <b>Как лучше слушать</b>
+            <div class="sub">Утром, сидя с прямой спиной и закрытыми глазами. Если задать таймер — запись плавно затихнет в конце.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-timer">
+        <h2 class="pageTitle">Таймер сна</h2>
+        <p class="pageSub">Обратный отсчёт с мягким затуханием звука.</p>
+        <div class="card">
+          <div class="ringWrap">
+            <svg viewBox="0 0 236 236">
+              <circle cx="118" cy="118" r="104" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="10"/>
+              <circle id="ringFg" cx="118" cy="118" r="104" fill="none" stroke="#93a8ff" stroke-width="10"
+                stroke-linecap="round" stroke-dasharray="653.45" stroke-dashoffset="0"
+                style="filter:drop-shadow(0 0 6px rgba(147,168,255,.8))"/>
+            </svg>
+            <div class="ringCenter">
+              <div id="timerRemain">--:--</div>
+              <div id="timerScene">звук не выбран</div>
+            </div>
+          </div>
+          <div class="chips" id="presetChips" style="justify-content:center;margin-top:10px"></div>
+          <div class="trow">
+            <button id="timerStart" class="btn primary">Начать</button>
+            <button id="timerPlus" class="btn">+5 мин</button>
+            <button id="timerStop" class="btn ghost">Стоп</button>
+          </div>
+          <p class="hint">В последние 60 секунд звук плавно гаснет,<br>а мерцание звёзд замедляется вместе с таймером.</p>
+        </div>
+      </section>
+
+      <section class="page" id="page-account">
+        <h2 class="pageTitle">Профиль</h2>
+        <p class="pageSub">Ваша статистика сна хранится только на этом устройстве.</p>
+        <div class="statGrid">
+          <div class="card stat">
+            <div class="sic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.6A8.7 8.7 0 1 1 9.4 3.7a7 7 0 1 0 10.9 10.9z"/></svg></div>
+            <b id="stStreak">0</b><span>дней подряд</span>
+          </div>
+          <div class="card stat">
+            <div class="sic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg></div>
+            <b id="stTotal">0</b><span>минут тишины</span>
+          </div>
+          <div class="card stat">
+            <div class="sic blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 12.6A8.2 8.2 0 1 1 11.4 4a6.6 6.6 0 1 0 8.6 8.6z"/></svg></div>
+            <b id="stToday">0</b><span>минут сегодня</span>
+          </div>
+          <div class="card stat">
+            <div class="sic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 13a7 7 0 0 1 14 0"/><rect x="3.5" y="13" width="4.4" height="7" rx="2"/><rect x="16.1" y="13" width="4.4" height="7" rx="2"/></svg></div>
+            <b id="stNights">0</b><span>ночей со звуком</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="secTitle">Последние 7 дней</div>
+          <div class="bars" id="weekBars"></div>
+        </div>
+
+        <div class="card">
+          <div class="secTitle">Достижения</div>
+          <div class="achs" id="achList"></div>
+        </div>
+
+        <button id="resetBtn" class="linkbtn">Сбросить статистику</button>
+      </section>
+
+    </main>
+
+    <nav id="tabbar">
+      <button class="tab active" data-page="home"><span data-ic="home"></span>Главная</button>
+      <button class="tab" data-page="library"><span data-ic="grid"></span>Звуки</button>
+      <button class="tab" data-page="stories"><span data-ic="book"></span>Истории</button>
+      <button class="tab" data-page="meditation"><span data-ic="lotus"></span>Медитация</button>
+      <button class="tab" data-page="timer"><span data-ic="clock"></span>Таймер</button>
+      <button class="tab" data-page="account"><span data-ic="user"></span>Профиль</button>
+    </nav>
+
+    <div id="np">
+      <span class="eq"><i></i><i></i><i></i></span>
+      <span id="npName"></span>
+      <span id="npRemain"></span>
+      <button id="npStop" aria-label="Остановить"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="3"/></svg></button>
+    </div>
+  </div>
+
+  <div id="ihint"></div>
+  <div id="toast"></div>
+
+  <div id="story">
+    <button id="storyBack" class="iconbtn" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+    </button>
+    <div class="stWrap">
+      <div class="cover big" id="stCover"></div>
+      <h3 id="stTitle"></h3>
+      <div id="stLine"></div>
+      <div class="stProg"><i id="stProgBar"></i></div>
+      <div id="stStep"></div>
+      <div class="stCtl">
+        <button id="stPlay" class="btn primary">Слушать</button>
+        <button id="stStop" class="btn ghost">Выключить</button>
+      </div>
+      <p class="hint">Рассказчик — системный голос вашего устройства.<br>Просто закройте глаза и дышите медленно.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ================= utils & storage ================= */
+const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pad=n=>String(n).padStart(2,'0');
+const fmtMS=s=>{s=Math.max(0,Math.round(s));return pad(Math.floor(s/60))+':'+pad(Math.round(s%60));};
+const fmtMin=m=>{m=Math.round(m);if(m<60)return m+' мин';const h=Math.floor(m/60);const r=m%60;return h+' ч'+(r?' '+r+' мин':'');};
+function load(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:Object.assign({},d,v);}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+const store=load('lunny_v1',{vols:{rain:70,wind:50,fire:60},master:85,muted:false});
+let stats=load('lunny_stats_v1',{streak:0,lastDay:null,totalMin:0,days:{},unlocks:[]});
+const saveStats=()=>save('lunny_stats_v1',stats);
+const todayKey=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+
+/* ================= inline icons ================= */
+const IC={
+home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.2 12 4.6l8 6.6"/><path d="M6.5 10.4V19.4h11V10.4"/></svg>',
+grid:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="2.2"/><rect x="13" y="4" width="7" height="7" rx="2.2"/><rect x="4" y="13" width="7" height="7" rx="2.2"/><rect x="13" y="13" width="7" height="7" rx="2.2"/></svg>',
+book:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.2C10.3 4.8 7.9 4.2 4 4.2v14.6c3.9 0 6.3.6 8 2 1.7-1.4 4.1-2 8-2V4.2c-3.9 0-6.3.6-8 2z"/><path d="M12 6.2v14.6"/></svg>',
+clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3.1 2.1"/></svg>',
+user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8.2" r="3.6"/><path d="M5.4 19.8a6.6 6.6 0 0 1 13.2 0"/></svg>',
+rain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M7 14.5a4.3 4.3 0 1 1 .9-8.5A5.3 5.3 0 0 1 18.3 7.8 3.6 3.6 0 0 1 17.6 14.5z"/><path d="M8.4 17.4l-.9 2.3M12.4 17.4l-.9 2.3M16.4 17.4l-.9 2.3"/></svg>',
+tree:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 7.2 10h2.7L5.6 16h12.8L14.1 10h2.7L12 3.2z"/><path d="M12 16v4.6"/></svg>',
+wave:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 9.5c2.25 0 2.25-1.7 4.5-1.7S9.75 9.5 12 9.5s2.25-1.7 4.5-1.7 2.25 1.7 4.5 1.7"/><path d="M3 14.5c2.25 0 2.25-1.7 4.5-1.7s2.25 1.7 4.5 1.7 2.25-1.7 4.5-1.7 2.25 1.7 4.5 1.7"/><path d="M3 19.5c2.25 0 2.25-1.7 4.5-1.7s2.25 1.7 4.5 1.7 2.25-1.7 4.5-1.7 2.25 1.7 4.5 1.7"/></svg>',
+cup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 9.5h10v4.5a5 5 0 0 1-10 0z"/><path d="M15 10.5h1.8a2.3 2.3 0 0 1 0 4.6H15"/><path d="M8.3 3.6v2.2M11.7 3.6v2.2"/></svg>',
+flame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.4c1 3.4 4.9 4.5 4.9 8.8a4.9 4.9 0 0 1-9.8 0c0-1.9.8-3.3 1.9-4.5.3 1.2 1 2 2 2.4-.4-2.2-.4-4.6 1-6.7z"/></svg>',
+piano:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 12h16M8.5 12v7M12 12v7M15.5 12v7"/></svg>',
+mixer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 4v16M12 4v16M18 4v16"/><circle cx="6" cy="9.5" r="2.1" fill="var(--card2)"/><circle cx="12" cy="15" r="2.1" fill="var(--card2)"/><circle cx="18" cy="7" r="2.1" fill="var(--card2)"/></svg>',
+play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.8 6.2v11.6c0 .8.9 1.3 1.6.9l9-5.8c.6-.4.6-1.4 0-1.8l-9-5.8c-.7-.4-1.6.1-1.6.9z"/></svg>',
+pause:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5.5" width="3.8" height="13" rx="1.6"/><rect x="13.7" y="5.5" width="3.8" height="13" rx="1.6"/></svg>',
+stop:'<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="3"/></svg>',
+head:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 13.5a7 7 0 0 1 14 0"/><rect x="3.6" y="13.2" width="4.2" height="6.6" rx="2"/><rect x="16.2" y="13.2" width="4.2" height="6.6" rx="2"/></svg>',
+headoff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 13.5a7 7 0 0 1 14 0"/><rect x="3.6" y="13.2" width="4.2" height="6.6" rx="2"/><rect x="16.2" y="13.2" width="4.2" height="6.6" rx="2"/><path d="M4 4l16 16"/></svg>',
+spark:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.2l2 5.8 5.8 2-5.8 2-2 5.8-2-5.8-5.8-2 5.8-2 2-5.8z"/></svg>',
+moon:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 14.6A8.7 8.7 0 1 1 9.4 3.7a7 7 0 1 0 10.9 10.9z"/></svg>',
+down:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 4v12m0 0 4.5-4.5M12 16l-4.5-4.5"/><path d="M5 20h14"/></svg>',
+lotus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6c1.6 1.8 2.4 3.6 2.4 5.4 0 1.6-.8 3-2.4 4.3-1.6-1.3-2.4-2.7-2.4-4.3 0-1.8.8-3.6 2.4-5.4z"/><path d="M12 14.3c-2.4-1.8-4.9-2.3-7.6-1.5 2 3.4 4.6 5.1 7.6 5.1s5.6-1.7 7.6-5.1c-2.7-.8-5.2-.3-7.6 1.5z"/></svg>'
+};
+
+/* ================= data ================= */
+const SCENES=[
+ {id:'rain', name:'Ночной дождь', sub:'Мягкий дождь по крышам и карнизам', ic:'rain', mix:{rain:.8,wind:.14}},
+ {id:'forest',name:'Шум леса',   sub:'Ветер в листве и редкие сверчки',  ic:'tree', mix:{wind:.8,crickets:.5}},
+ {id:'ocean', name:'Океан',      sub:'Медленные волны о тёплый песок',   ic:'wave', mix:{ocean:.9}},
+ {id:'cafe',  name:'Кафе в полночь', sub:'Гул голосов и звон чашек',      ic:'cup',  mix:{cafe:.85}},
+ {id:'fire',  name:'Камин',      sub:'Тёплый треск дров и низкий гул',   ic:'flame',mix:{fire:.9}},
+ {id:'piano', name:'Гул фортепиано', sub:'Тихие аккорды из соседней комнаты', ic:'piano', mix:{piano:.85}},
+];
+const PRESETS=[30,45,60,90];
+const STORIES=[
+ {id:'lighthouse',title:'Маяк на спящей бухте',min:12,hue:212,lines:[
+  'Представь себе маленький маяк на краю тихой бухты, где вода дышит медленно и спокойно.',
+  'Ночь опустилась на воду мягким шерстяным одеялом, и маяк зажигает свой тёплый жёлтый глаз.',
+  'Свет поворачивается раз в семь секунд — медленнее, чем твоё дыхание. Можно дышать вместе с ним.',
+  'Вдох — луч скользит по чёрной воде. Выдох — вода снова становится бархатной и тёмной.',
+  'Где-то далеко скрипит снасть старой шхуны, но ей некуда спешить: пристань уже рядом.',
+  'Чайки спят на тёплых камнях, спрятав головы под крыло, и им снятся медленные облака.',
+  'Ты сидишь на широких ступенях маяка, и камни отдают тепло, накопленное за день.',
+  'С каждым оборотом света мир становится тише, мягче и добрее к тебе.',
+  'Маяк охраняет твой сон всю ночь. Можно закрыть глаза — он не выключится.',
+  'Спокойной ночи. Пусть бухта останется с тобой до самого утра.']},
+ {id:'train',title:'Поезд сквозь зимний лес',min:18,hue:258,lines:[
+  'Старый поезд идёт сквозь зимний лес, и колёса мерно постукивают: тук… тук… тук…',
+  'Ты лежишь на мягкой полке у окна, укрытый тёплым клетчатым пледом.',
+  'За стеклом проплывают заснеженные ели — медленно, как во сне.',
+  'В вагоне пахнет чаем с мятой и нагретым металлом печки.',
+  'Проводник ушёл далеко назад, и больше никто тебя не побеспокоит до самого утра.',
+  'Стук колёс складывается в колыбельную: тук-тук… тук-тук… тук-тук…',
+  'Лес расступается, и на минуту видно ночное небо — тысячи звёзд над сугробами.',
+  'Поезд мягко качает тебя, как качал когда-то в далёкой, счастливой поездке к бабушке.',
+  'Глаза слипаются. Пусть поезд везёт тебя в самое сердце зимней ночи.',
+  'Спи. Где-то далеко стучат колёса, и это самый спокойный звук на свете.']},
+ {id:'clouds',title:'Сад облаков',min:15,hue:192,lines:[
+  'Есть сад, где вместо цветов растут облака — низкие, мягкие, до самых плеч.',
+  'Ты идёшь по тропинке из тёплого тумана, и он пружинит под ногами, как свежий хлеб.',
+  'Сорви облако, как яблоко: оно прохладное, невесомое и пахнет сном.',
+  'Положи его на землю — получится подушка лучше всех подушек на свете.',
+  'Где-то рядом вздыхает ветер, укладывая облака по грядкам, словно стелет одеяло.',
+  'Небо медленно темнеет до цвета черники, и первые звёзды садятся на ветки.',
+  'Ты ложишься на спину, и облако само принимает форму твоих усталых плеч.',
+  'Сад закрывается на ночь сам собой: калитка из тумана тает беззвучно.',
+  'Ни одна забота не может сюда войти. Здесь живут только сны.',
+  'Спи в своём облаке. Утром сад вернёт тебя отдохнувшим.']},
+ {id:'bookshop',title:'Ночной книжный магазин',min:20,hue:322,lines:[
+  'На тихой улице есть книжный магазин, который открывается только ночью — для тех, кто не спит.',
+  'Дверь со стеклянным колокольчиком. Он звенит один раз — мягко и разрешающе.',
+  'Внутри горят маленькие лампы с зелёными абажурами, как в старой библиотеке.',
+  'Полки уходят высоко вверх, и пахнет бумагой, деревом и чуть-чуть корицей.',
+  'Хозяин в вязаном кардигане кивает тебе и продолжает чинить переплёт — без слов.',
+  'Ты берёшь первую попавшуюся книгу: там пишут про медленные реки и тёплые вечера.',
+  'В углу ждёт кресло — глубокое, как объятие, из которого не хочется вставать.',
+  'Страницы шуршат совсем тихо, будто сухие листья под ногами в октябре.',
+  'Магазин закрывается сам: лампы гаснут одна за другой, оставляя только свет луны.',
+  'Спи. История дочитается сама — тебе снится самая спокойная её глава.']},
+];
+const ACHS=[
+ {id:'first', name:'Первая ночь',   sub:'минута сна со звуком', cond:s=>s.totalMin>=1},
+ {id:'streak3',name:'Три ночи подряд',sub:'вернись три вечера',   cond:s=>s.streak>=3},
+ {id:'m300',  name:'300 минут покоя',sub:'пять часов тишины',    cond:s=>s.totalMin>=300},
+ {id:'moon10',name:'Полная луна',   sub:'10 вечеров с приложением',cond:s=>Object.keys(s.days).length>=10},
+];
+/* ================= SKY: stars, moon, touch trail ================= */
+const Sky=(()=>{
+  const cv=$('#sky'),ctx=cv.getContext('2d'),phone=$('#phone');
+  let W=0,H=0,DPR=1,rect=null,stars=[],meteors=[],trail=[],tw=1;
+  const api={twTarget:1,immersiveSince:0};
+  /* sprite for crescent moon */
+  const mc=document.createElement('canvas');mc.width=mc.height=256;const mg=mc.getContext('2d');
+  function sprite(){const c=128;mg.clearRect(0,0,256,256);
+    mg.fillStyle='#fcf4de';mg.beginPath();mg.arc(c,c,77,0,7);mg.fill();
+    mg.globalCompositeOperation='destination-out';
+    mg.beginPath();mg.arc(c+30,c-16,74,0,7);mg.fill();
+    mg.globalCompositeOperation='source-over';}
+  function resize(){rect=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);
+    W=rect.width;H=rect.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+    ctx.setTransform(DPR,0,0,DPR,0,0);makeStars();}
+  function makeStars(){stars=[];const n=Math.round(W*H/2400);
+    for(let i=0;i<n;i++)stars.push({x:Math.random(),y:Math.random()*.94,
+      r:.4+Math.random()*1.25,ph:Math.random()*6.283,sp:.3+Math.random()*.95,warm:Math.random()<.16});}
+  function moonP(){const d=new Date();return((d.getHours()%12)*3600+d.getMinutes()*60+d.getSeconds())/43200;}
+  function moonXY(){const p=moonP(),top=H*.10,hor=H*.56;
+    return{x:W*(.14+.72*p),y:hor-(hor-top)*Math.sin(p*Math.PI),p};}
+  api.moonXY=moonXY; api.moonR=()=>Math.max(16,Math.min(26,W*.05));
+  function drawMoon(t){const{x,y}=moonXY(),R=api.moonR(),k=3.4,px=R*k;
+    const glowR=R*5+Math.sin(t/900)*2;
+    const gr=ctx.createRadialGradient(x,y,0,x,y,glowR);
+    gr.addColorStop(0,'rgba(255,229,180,'+(.20*tw+.04)+')');gr.addColorStop(1,'rgba(255,229,180,0)');
+    ctx.fillStyle=gr;ctx.fillRect(x-glowR,y-glowR,glowR*2,glowR*2);
+    sprite();ctx.drawImage(mc,x-px/2,y-px/2,px,px);}
+  function pushTrail(x,y){trail.push({x,y,life:1});if(trail.length>70)trail.shift();}
+  let downX=0,downY=0,downT=0;
+  phone.addEventListener('pointermove',e=>{const r=rect||cv.getBoundingClientRect();
+    pushTrail(e.clientX-r.left,e.clientY-r.top);},{passive:true});
+  phone.addEventListener('pointerdown',e=>{const r=rect||cv.getBoundingClientRect();
+    const x=e.clientX-r.left,y=e.clientY-r.top;
+    downX=x;downY=y;downT=performance.now();
+    for(let i=0;i<6;i++)pushTrail(x+(Math.random()-.5)*18,y+(Math.random()-.5)*18);},{passive:true});
+  phone.addEventListener('pointerup',e=>{
+    const r=rect||cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+    if(Math.hypot(x-downX,y-downY)>12||performance.now()-downT>450)return;
+    const m=moonXY(),R=api.moonR();
+    if(Math.hypot(x-m.x,y-m.y)<R+22){UI.toggleImmersive();}},
+    {passive:true});
+  function frame(t){
+    tw+=(api.twTarget-tw)*.012;
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#0a1233');g.addColorStop(.55,'#0a1128');g.addColorStop(1,'#070d24');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#dfe6ff';
+    for(const s of stars){
+      const a=(.20+.80*(.5+.5*Math.sin(t/1000*s.sp*2.2+s.ph)))*tw;
+      ctx.globalAlpha=clamp(a,0,1);
+      ctx.fillStyle=s.warm?'#ffe9c9':'#dfe6ff';
+      ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,7);ctx.fill();}
+    ctx.globalAlpha=1;
+    if(Math.random()<.0008&&meteors.length<2)
+      meteors.push({x:W*(.15+Math.random()*.7),y:H*(.05+Math.random()*.25),vx:2.4+Math.random()*1.6,vy:1.2+Math.random()*.8,life:1});
+    for(let i=meteors.length-1;i>=0;i--){const m=meteors[i];
+      m.x+=m.vx*1.6;m.y+=m.vy*1.6;m.life-=.018;
+      if(m.life<=0){meteors.splice(i,1);continue;}
+      const gr=ctx.createLinearGradient(m.x,m.y,m.x-m.vx*16,m.y-m.vy*16);
+      gr.addColorStop(0,'rgba(220,230,255,'+(.75*m.life*tw)+')');gr.addColorStop(1,'rgba(220,230,255,0)');
+      ctx.strokeStyle=gr;ctx.lineWidth=1.6;ctx.beginPath();
+      ctx.moveTo(m.x,m.y);ctx.lineTo(m.x-m.vx*16,m.y-m.vy*16);ctx.stroke();}
+    drawMoon(t);
+    ctx.globalCompositeOperation='lighter';
+    for(let i=trail.length-1;i>=0;i--){const p=trail[i];p.life-=.026;
+      if(p.life<=0){trail.splice(i,1);continue;}
+      const rr=2+12*p.life;
+      const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,rr);
+      gr.addColorStop(0,'rgba(165,185,255,'+(.28*p.life)+')');gr.addColorStop(1,'rgba(165,185,255,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(p.x,p.y,rr,0,7);ctx.fill();}
+    ctx.globalCompositeOperation='source-over';
+    requestAnimationFrame(frame);}
+  addEventListener('resize',resize);
+  resize();requestAnimationFrame(frame);
+  return api;
+})();
+/* ================= ENGINE: procedural looping soundscapes ================= */
+const Engine=(()=>{
+  let ac=null,master=null,buffers={},L={},current=null,fadeK=null;
+  const SCALE={rain:.95,wind:.8,fire:.9};
+  function noiseBuf(type){if(buffers[type])return buffers[type];
+    const sr=ac.sampleRate,len=sr*3,b=ac.createBuffer(1,len,sr),d=b.getChannelData(0);
+    if(type==='brown'){let l=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;l=(l+.02*w)/1.02;d[i]=l*3.2;}}
+    else if(type==='pink'){let b0=0,b1=0,b2=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;
+      b0=.997*b0+.029*w;b1=.985*b1+.032*w;b2=.95*b2+.048*w;d[i]=(b0+b1+b2)*.5;}}
+    else{for(let i=0;i<len;i++)d[i]=Math.random()*2-1;}
+    return buffers[type]=b;}
+  function src(type){const s=ac.createBufferSource();s.buffer=noiseBuf(type);s.loop=true;s.start();return s;}
+  function layer(){const g=ac.createGain();g.gain.value=0;g.connect(master);return g;}
+
+  function build(){
+    master=ac.createGain();master.gain.value=0;
+    const comp=ac.createDynamicsCompressor();comp.threshold.value=-22;comp.knee.value=26;comp.ratio.value=4;
+    master.connect(comp);comp.connect(ac.destination);
+    /* RAIN */
+    {const g=layer();
+     const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1500;bp.Q.value=.35;
+     const hp=ac.createBiquadFilter();hp.type='highpass';hp.frequency.value=460;
+     src('white').connect(bp);bp.connect(hp);hp.connect(g);
+     let nd=0;
+     const drop=t=>{const o=ac.createOscillator();o.frequency.value=900+Math.random()*2800;
+       const e=ac.createGain();e.gain.setValueAtTime(0,t);
+       e.gain.linearRampToValueAtTime(.014+Math.random()*.038,t+.005);
+       e.gain.exponentialRampToValueAtTime(.0001,t+.05+Math.random()*.14);
+       o.connect(e);e.connect(g);o.start(t);o.stop(t+.3);};
+     L.rain={g,tick(){const t=ac.currentTime;if(nd<t)nd=t+.05;
+       while(nd<t+1.6){drop(nd);nd+=.035+Math.random()*.24;}}};}
+    /* WIND */
+    {const g=layer();
+     const bp=ac.createBiquadFilter();bp.type='bandpass';bp.frequency.value=420;bp.Q.value=.9;
+     src('pink').connect(bp);
+     const trem=ac.createGain();trem.gain.value=.85;bp.connect(trem);trem.connect(g);
+     const lfo=ac.createOscillator();lfo.frequency.value=.045;
+     const la=ac.createGain();la.gain.value=170;lfo.connect(la);la.connect(bp.frequency);lfo.start();
+     const lfo2=ac.createOscillator();lfo2.frequency.value=.028;
+     const la2=ac.createGain();la2.gain.value=.12;lfo2.connect(la2);la2.connect(trem.gain);lfo2.start();
+     L.wind={g};}
+    /* FIRE */
+    {const g=layer();
+     const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=320;
+     src('brown').connect(lp);lp.connect(g);
+     let nc=0;
+     const crack=t=>{const s=ac.createBufferSource();s.buffer=noiseBuf('white');
+       const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=1400+Math.random()*3800;f.Q.value=1.2;
+       const e=ac.createGain();const a=.06+Math.random()*.26;
+       e.gain.setValueAtTime(0,t);e.gain.linearRampToValueAtTime(a,t+.004);
+       e.gain.exponentialRampToValueAtTime(.0001,t+.03+Math.random()*.09);
+       s.connect(f);f.connect(e);e.connect(g);
+       s.start(t,Math.random()*2,.16);s.stop(t+.2);};
+     L.fire={g,tick(){const t=ac.currentTime;if(nc<t)nc=t+.05;
+       while(nc<t+1.6){crack(nc);nc+=.07+Math.random()*.5;}}};}
+    /* OCEAN */
+    {const g=layer();
+     const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=520;
+     const sw=ac.createGain();sw.gain.value=.5;
+     src('brown').connect(lp);lp.connect(sw);sw.connect(g);
+     const lfo=ac.createOscillator();lfo.frequency.value=.055;
+     const la=ac.createGain();la.gain.value=.5;lfo.connect(la);la.connect(sw.gain);lfo.start();
+     const fhp=ac.createBiquadFilter();fhp.type='highpass';fhp.frequency.value=2200;
+     const fo=ac.createGain();fo.gain.value=.06;
+     src('white').connect(fhp);fhp.connect(fo);fo.connect(g);
+     const lfo2=ac.createOscillator();lfo2.frequency.value=.055;
+     const la2=ac.createGain();la2.gain.value=.05;lfo2.connect(la2);la2.connect(fo.gain);lfo2.start();
+     L.ocean={g};}
+    /* CAFE */
+    {const g=layer();
+     const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=620;
+     src('brown').connect(lp);
+     const mg2=ac.createGain();mg2.gain.value=.55;lp.connect(mg2);mg2.connect(g);
+     const lfo=ac.createOscillator();lfo.frequency.value=.06;
+     const la=ac.createGain();la.gain.value=110;lfo.connect(la);la.connect(lp.frequency);lfo.start();
+     const dl=ac.createDelay(1);dl.delayTime.value=.17;
+     const fb=ac.createGain();fb.gain.value=.32;
+     const dlp=ac.createBiquadFilter();dlp.type='lowpass';dlp.frequency.value=2600;
+     dl.connect(fb);fb.connect(dlp);dlp.connect(dl);dl.connect(g);
+     const clink=t=>{[1,2.756].forEach(m=>{const o=ac.createOscillator();o.type='triangle';
+       o.frequency.value=(1700+Math.random()*1600)*m;
+       const e=ac.createGain();e.gain.setValueAtTime(0,t);
+       e.gain.linearRampToValueAtTime(m>1?.018:.05,t+.003);
+       e.gain.exponentialRampToValueAtTime(.0001,t+.12+Math.random()*.15);
+       o.connect(e);e.connect(g);e.connect(dl);o.start(t);o.stop(t+.45);});};
+     let nk=0;
+     L.cafe={g,tick(){const t=ac.currentTime;if(nk<t)nk=t+1;
+       while(nk<t+1.6){clink(nk);nk+=2.5+Math.random()*7;}}};}
+    /* PIANO */
+    {const g=layer();
+     const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=950;lp.connect(g);
+     const CH=[[110,164.81,220,246.94],[87.31,130.81,174.61,220],[98,146.83,196,293.66],[82.41,123.47,164.81,246.94]];
+     let idx=0,nextT=0;
+     const chord=t=>{t=Math.max(t,ac.currentTime+.05);
+       const ch=CH[idx++%CH.length];
+       ch.forEach(f=>{[['sine',0,.045],['triangle',6,.024]].forEach(([type,det,a])=>{
+         const o=ac.createOscillator();o.type=type;o.frequency.value=f;o.detune.value=det;
+         const e=ac.createGain();e.gain.setValueAtTime(0,t);
+         e.gain.linearRampToValueAtTime(a,t+7);e.gain.setValueAtTime(a,t+20);
+         e.gain.linearRampToValueAtTime(0,t+27);
+         o.connect(e);e.connect(lp);o.start(t);o.stop(t+28);});});
+       nextT=t+26;};
+     L.piano={g,tick(){const t=ac.currentTime;
+       if(!nextT){chord(t+.1);return;}
+       if(nextT<t+1.6)chord(nextT);}};}
+    /* CRICKETS */
+    {const g=layer();
+     const train=t=>{const n=3+(Math.random()*4|0);let p=t;
+       for(let i=0;i<n;i++){const o=ac.createOscillator();o.frequency.value=4100+Math.random()*600;
+         const e=ac.createGain();e.gain.setValueAtTime(0,p);
+         e.gain.linearRampToValueAtTime(.011,p+.006);
+         e.gain.exponentialRampToValueAtTime(.0001,p+.05);
+         o.connect(e);e.connect(g);o.start(p);o.stop(p+.08);p+=.055;}};
+     let nt=0;
+     L.crickets={g,tick(){const t=ac.currentTime;if(nt<t)nt=t+.2;
+       while(nt<t+1.6){train(nt);nt+=.8+Math.random()*1.8;}}};}
+  }
+  function init(){if(ac)return;
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC){UI.toast('Браузер не поддерживает звук');return;}
+    ac=new AC();build();
+    setInterval(()=>{if(!ac||ac.state!=='running'||!current)return;
+      for(const k in L)if(L[k].tick)L[k].tick();},400);
+    applyMaster();}
+  function sceneMix(id){
+    if(id==='mixer')return{rain:store.vols.rain/100*SCALE.rain,wind:store.vols.wind/100*SCALE.wind,fire:store.vols.fire/100*SCALE.fire};
+    if(id&&id.indexOf('story:')===0)return{piano:.42,wind:.16};
+    const s=SCENES.find(x=>x.id===id);return s?s.mix:{};}
+  function applyMaster(){if(!ac)return;
+    const m=store.muted?0:(store.master/100*.95)*(fadeK==null?1:fadeK);
+    master.gain.setTargetAtTime(m,ac.currentTime,.3);}
+  function play(id){init();if(!ac)return;
+    if(ac.state==='suspended')ac.resume();
+    fadeK=null;applyMaster();
+    current=id;
+    const mix=sceneMix(id),t=ac.currentTime;
+    for(const k in L)L[k].g.gain.setTargetAtTime(mix[k]||0,t,.45);}
+  function stopAll(f=1.1){if(!ac){current=null;return;}
+    current=null;const t=ac.currentTime;
+    for(const k in L)L[k].g.gain.setTargetAtTime(0,t,f/3);
+    fadeK=null;setTimeout(()=>{if(!current)applyMaster();},f*1000);}
+  return{
+    play,pause(){if(ac&&ac.state==='running')ac.suspend();},
+    resume(){if(ac&&ac.state==='suspended')ac.resume();},
+    stopAll,
+    isPlaying(){return!!(ac&&current&&ac.state==='running');},
+    isPaused(){return!!(ac&&current&&ac.state==='suspended');},
+    id:()=>current,
+    label(){if(!current)return null;
+      if(current==='mixer')return'Микшер-кокон';
+      if(current.indexOf('story:')===0){const s=STORIES.find(x=>x.id===current.slice(6));return s?'История: '+s.title:'История';}
+      const s=SCENES.find(x=>x.id===current);return s?s.name:null;},
+    setFade(k){fadeK=k;applyMaster();},
+    applyMaster,
+    setVol(layer,pct){store.vols[layer]=pct;save('lunny_v1',store);
+      if(current==='mixer'&&ac)L[layer].g.gain.setTargetAtTime(pct/100*SCALE[layer],ac.currentTime,.15);}
+  };
+})();
+
+/* ================= TIMER ================= */
+const Timer={
+  run:false,paused:false,total:0,remain:0,endAt:0,h:null,_f60:false,
+  start(min){this.total=Math.round(min*60);this.remain=this.total;
+    this.endAt=Date.now()+this.total*1000;this.run=true;this.paused=false;this._f60=false;
+    clearInterval(this.h);this.h=setInterval(()=>this.tick(),1000);this.tick();},
+  add(m){if(!this.run&&!this.paused)return;
+    this.endAt+=m*60000;this.total=Math.max(this.total,this.remain+m*60);
+    if(!this.run){this.resume();return;}this.tick();},
+  pause(){if(!this.run)return;this.paused=true;this.run=false;clearInterval(this.h);
+    this.remain=Math.max(0,(this.endAt-Date.now())/1000);UI.renderTimer();},
+  resume(){if(!this.paused)return;this.paused=false;this.run=true;
+    this.endAt=Date.now()+Math.max(1,this.remain)*1000;
+    clearInterval(this.h);this.h=setInterval(()=>this.tick(),1000);this.tick();},
+  stop(){this.run=false;this.paused=false;clearInterval(this.h);this.remain=0;
+    Engine.setFade(null);Sky.twTarget=1;UI.renderTimer();},
+  tick(){this.remain=Math.max(0,(this.endAt-Date.now())/1000);
+    if(this.remain<=0){this.finish();return;}
+    if(!this._f60&&this.remain<=60){this._f60=true;UI.toast('Последняя минута — звук плавно тает');}
+    if(this.remain>60)this._f60=false;
+    Engine.setFade(this.remain<=60?Math.pow(this.remain/60,1.2):null);
+    Sky.twTarget=this.run?(.10+.90*clamp(this.remain/this.total,0,1)):1;
+    UI.renderTimer();},
+  finish(){this.run=false;this.paused=false;clearInterval(this.h);this.remain=0;
+    Engine.stopAll(2.2);Sky.twTarget=1;UI.renderTimer();
+    UI.toast('Таймер завершён. Сладких снов');}
+};
+
+/* ================= STORY player ================= */
+const TTS={voice:null};
+if('speechSynthesis' in window){
+  const pick=()=>{const vs=speechSynthesis.getVoices();
+    TTS.voice=vs.find(v=>/^ru[-_]/i.test(v.lang))||vs.find(v=>/^ru/i.test(v.lang))||null;};
+  pick();speechSynthesis.onvoiceschanged=pick;
+}
+const Story={
+  cur:null,i:0,playing:false,_h:null,
+  open(st){this.cur=st;this.i=0;this.playing=false;
+    const c=$('#stCover');
+    c.style.background='linear-gradient(150deg,hsl('+st.hue+' 45% 30%),hsl('+((st.hue+40)%360)+' 50% 14%))';
+    c.innerHTML=IC.book;
+    $('#stTitle').textContent=st.title;
+    const el=$('#stLine');el.textContent='';el.classList.remove('show');
+    $('#stProgBar').style.width='0%';$('#stStep').textContent='1 / '+st.lines.length;
+    $('#stPlay').textContent='Слушать';
+    $('#story').classList.add('open');
+    Engine.play('story:'+st.id);UI.renderAll();},
+  toggle(){if(!this.cur)return;
+    if(this.playing){this.playing=false;
+      if('speechSynthesis' in window)speechSynthesis.cancel();
+      clearTimeout(this._h);$('#stPlay').textContent='Продолжить';}
+    else{this.playing=true;$('#stPlay').textContent='Пауза';this.speak();}},
+  speak(){if(!this.playing||!this.cur)return;const st=this.cur;
+    if(this.i>=st.lines.length){this.end();return;}
+    const line=st.lines[this.i],el=$('#stLine');
+    el.classList.remove('show');void el.offsetWidth;
+    el.textContent=line;el.classList.add('show');
+    $('#stProgBar').style.width=(100*(this.i+1)/st.lines.length)+'%';
+    $('#stStep').textContent=(this.i+1)+' / '+st.lines.length;
+    const next=()=>{this._h=setTimeout(()=>{this.i++;this.speak();},1500);};
+    if('speechSynthesis' in window){
+      try{speechSynthesis.cancel();
+        const u=new SpeechSynthesisUtterance(line);
+        if(TTS.voice)u.voice=TTS.voice;
+        u.lang='ru-RU';u.rate=.82;u.pitch=.9;
+        u.onend=next;u.onerror=next;
+        speechSynthesis.speak(u);}
+      catch(e){next();}}
+    else this._h=setTimeout(next,8500);},
+  end(){this.playing=false;this.i=0;$('#stPlay').textContent='Слушать ещё раз';
+    UI.toast('История закончилась. Спокойной ночи');},
+  stop(){this.playing=false;clearTimeout(this._h);
+    if('speechSynthesis' in window)speechSynthesis.cancel();
+    Engine.stopAll(1.5);}
+};
+
+/* ================= meditation player ================= */
+const Med=(()=>{
+  const TITLE='Утренняя медитация на изобилие';
+  const RATES=[.75,1,1.25];
+  const A=new Audio();
+  let started=false,failed=false,fadeK=null,fadeH=null,internal=false;
+  A.preload='metadata';
+  A.src='audio/morning-meditation.m4a';
+  A.playbackRate=RATES.includes(store.medRate)?store.medRate:1;
+  function applyVolume(){A.volume=clamp((store.muted?0:store.master/100*.95)*(fadeK==null?1:fadeK),0,1);}
+  function applyFade(k){fadeK=k;applyVolume();}
+  function stopFade(){clearInterval(fadeH);fadeH=null;}
+  function fadePause(sec){if(A.paused)return;stopFade();
+    const v0=A.volume,t0=performance.now();
+    fadeH=setInterval(()=>{const p=Math.min(1,(performance.now()-t0)/(sec*1000));
+      A.volume=clamp(v0*(1-p),0,1);
+      if(p>=1){stopFade();A.pause();}},50);}
+  function play(){
+    if(failed){UI.toast('Аудиофайл не найден — откройте приложение из папки целиком');return;}
+    internal=true;try{Engine.stopAll(.8);Timer.stop();}finally{internal=false;}
+    stopFade();applyVolume();
+    const p=A.play();if(p&&p.catch)p.catch(()=>{});
+    started=true;render();UI.renderAll();}
+  function pause(){A.pause();render();UI.renderAll();}
+  function toggle(){if(A.paused)play();else pause();}
+  function stop(){A.pause();try{A.currentTime=0;}catch(e){}
+    started=false;stopFade();applyVolume();render();UI.renderAll();}
+  function seekBy(sec){const d=A.duration;if(!isFinite(d)||d<=0)return;
+    A.currentTime=clamp(A.currentTime+sec,0,d);render();}
+  function setRate(r){A.playbackRate=r;
+    if(store.medRate!==r){store.medRate=r;save('lunny_v1',store);}
+    render();}
+  function render(){
+    const playing=!A.paused,d=A.duration,has=isFinite(d)&&d>0;
+    const ic=$('#medIc');if(ic)ic.innerHTML=playing?IC.pause:IC.play;
+    const st=$('#medState');
+    if(st)st.textContent=failed?'Файл недоступен'
+      :(playing?'Играет':(started?'Пауза':'Коснитесь, чтобы начать'));
+    const rem=$('#medRemain');
+    if(rem)rem.textContent=failed?'проверьте папку audio'
+      :(has?('осталось '+fmtMS(d-A.currentTime)):'медитация утра');
+    const ring=$('#medRing');
+    if(ring){const f=has?clamp(A.currentTime/d,0,1):0;
+      ring.style.strokeDashoffset=270.2*(1-f);ring.style.opacity=1;}
+    const seek=$('#medSeek');
+    if(seek){if(has&&!seekDragging)seek.value=Math.round(A.currentTime/d*1000);
+      seek.style.setProperty('--fill',((has?A.currentTime/d:0)*100)+'%');
+      seek.disabled=!has;}
+    const cur=$('#medCur');if(cur)cur.textContent=fmtMS(A.currentTime);
+    const tot=$('#medTotal');if(tot&&has)tot.textContent=fmtMS(d);
+    const dur=$('#medDur');if(dur&&has)dur.textContent=fmtMin(d/60);
+    $$('#medSpeed .chip').forEach(c=>c.classList.toggle('on',+c.dataset.r===A.playbackRate));}
+  /* --- элементы управления страницы --- */
+  $('#medBtn').addEventListener('click',toggle);
+  $('#medStop').addEventListener('click',stop);
+  $('#medBack15').addEventListener('click',()=>seekBy(-15));
+  $('#medFwd15').addEventListener('click',()=>seekBy(15));
+  let seekDragging=false;
+  const seek=$('#medSeek');
+  seek.addEventListener('input',()=>{seekDragging=true;
+    const d=A.duration;
+    if(isFinite(d)&&d>0){A.currentTime=seek.value/1000*d;
+      const cur=$('#medCur');if(cur)cur.textContent=fmtMS(A.currentTime);
+      seek.style.setProperty('--fill',(seek.value/10)+'%');}});
+  seek.addEventListener('change',()=>{seekDragging=false;render();});
+  const sp=$('#medSpeed');
+  RATES.forEach(r=>{const c=document.createElement('button');c.className='chip';c.dataset.r=r;
+    c.textContent=String(r).replace('.',',')+'×';
+    c.addEventListener('click',()=>setRate(r));sp.appendChild(c);});
+  /* --- события audio --- */
+  A.addEventListener('loadedmetadata',render);
+  A.addEventListener('timeupdate',render);
+  A.addEventListener('play',()=>{started=true;render();UI.renderAll();});
+  A.addEventListener('pause',()=>{render();UI.renderAll();});
+  A.addEventListener('ended',()=>{started=false;try{A.currentTime=0;}catch(e){}
+    render();UI.renderAll();UI.toast('Медитация закончилась. Прекрасного дня');});
+  A.addEventListener('error',()=>{failed=true;render();});
+  /* --- управление с экрана блокировки --- */
+  if('mediaSession' in navigator){try{
+    navigator.mediaSession.metadata=new MediaMetadata({title:TITLE,artist:'Лунный сон',album:'Медитации'});
+    navigator.mediaSession.setActionHandler('play',play);
+    navigator.mediaSession.setActionHandler('pause',pause);
+    navigator.mediaSession.setActionHandler('seekbackward',()=>seekBy(-15));
+    navigator.mediaSession.setActionHandler('seekforward',()=>seekBy(15));
+  }catch(e){}}
+  /* --- связка с движком саундскейпов и таймером сна --- */
+  const _play=Engine.play,_stopAll=Engine.stopAll,_setFade=Engine.setFade;
+  Engine.play=function(id){if(!A.paused)fadePause(.8);return _play(id);};
+  Engine.stopAll=function(f=1.1){if(!internal)fadePause(f);return _stopAll(f);};
+  Engine.setFade=function(k){_setFade(k);applyFade(k);};
+  return{TITLE,play,pause,toggle,stop,seekBy,setRate,applyVolume,applyFade,render,
+    isPlaying:()=>!A.paused,
+    active:()=>started||!A.paused,
+    remainSec:()=>isFinite(A.duration)?Math.max(0,A.duration-A.currentTime):0,
+    label:()=>TITLE};
+})();
+
+/* ================= stats ================= */
+let secAcc=0;
+function addMinute(){const tk=todayKey();
+  if(stats.lastDay!==tk){
+    const yd=new Date(Date.now()-864e5);
+    const yk=yd.getFullYear()+'-'+pad(yd.getMonth()+1)+'-'+pad(yd.getDate());
+    stats.streak=(stats.lastDay===yk)?stats.streak+1:1;stats.lastDay=tk;}
+  stats.totalMin++;stats.days[tk]=(stats.days[tk]||0)+1;
+  ACHS.forEach(a=>{if(a.cond(stats)&&!stats.unlocks.includes(a.id)){
+    stats.unlocks.push(a.id);UI.toast('Достижение: '+a.name);}});
+  saveStats();UI.renderAccount();}
+
+/* ================= UI ================= */
+const UI=(()=>{
+  const phone=$('#phone');
+  let toastH=null;
+  function toast(msg,ms=3000){const t=$('#toast');t.textContent=msg;t.classList.add('show');
+    clearTimeout(toastH);toastH=setTimeout(()=>t.classList.remove('show'),ms);}
+  function tab(name){$$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.page===name));
+    $$('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+    $('#main').scrollTop=0;try{history.replaceState(null,'','#'+name);}catch(e){}}
+  $$('.tab').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.page)));
+  $$('[data-ic]').forEach(el=>el.innerHTML=IC[el.dataset.ic]||'');
+  /* --- immersion --- */
+  let immT=null;
+  function toggleImmersive(){const on=!phone.classList.contains('immersive');
+    phone.classList.toggle('immersive',on);
+    const h=$('#ihint');
+    if(on){h.textContent='Небо только твоё. Коснитесь экрана, чтобы вернуть интерфейс';
+      h.classList.add('show');clearTimeout(immT);
+      immT=setTimeout(()=>h.classList.remove('show'),3400);
+      Sky.immersiveSince=Date.now();}
+    else{h.classList.remove('show');Sky.immersiveSince=0;}}
+  $('#moonBtn').addEventListener('click',toggleImmersive);
+  phone.addEventListener('pointerup',()=>{
+    if(phone.classList.contains('immersive')&&Date.now()-Sky.immersiveSince>900)toggleImmersive();},{passive:true});
+  /* --- mute --- */
+  const muteBtn=$('#muteBtn');
+  function renderMute(){muteBtn.innerHTML=store.muted?IC.headoff:IC.head;}
+  muteBtn.addEventListener('click',()=>{store.muted=!store.muted;save('lunny_v1',store);
+    Engine.applyMaster();Med.applyVolume();renderMute();
+    toast(store.muted?'Звук выключен':'Звук включён');});
+  /* --- install tip --- */
+  let deferred=null;const instCard=$('#installCard');
+  if(!matchMedia('(display-mode: standalone)').matches&&localStorage.getItem('lunny_inst_hide')!=='1')
+    instCard.hidden=false;
+  addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;instCard.hidden=false;});
+  $('#installBtn').addEventListener('click',async()=>{
+    if(!deferred){toast('Меню браузера → «Добавить на главный экран»');return;}
+    deferred.prompt();await deferred.userChoice;deferred=null;instCard.hidden=true;});
+  $('#installSkip').addEventListener('click',()=>{instCard.hidden=true;
+    localStorage.setItem('lunny_inst_hide','1');});
+  /* --- library --- */
+  const EQ='<span class="eq"><i></i><i></i><i></i></span>';
+  function sceneTap(id){const cur=Engine.id();
+    if(cur===id&&Engine.isPlaying()){Engine.pause();Timer.pause();}
+    else if(cur===id&&Engine.isPaused()){Engine.resume();Timer.resume();}
+    else{if(Timer.paused)Timer.stop();Engine.play(id);}
+    renderAll();}
+  const grid=$('#sceneGrid');
+  SCENES.forEach(s=>{const b=document.createElement('button');
+    b.className='card scard';b.dataset.scene=s.id;
+    b.innerHTML='<span class="ic">'+IC[s.ic]+'</span><b>'+s.name+'</b><span class="sub">'+s.sub+'</span><span class="st">'+IC.play+'</span>';
+    b.addEventListener('click',()=>sceneTap(s.id));grid.appendChild(b);});
+  $('#mixerBtn').addEventListener('click',()=>sceneTap('mixer'));
+  function renderScenes(){const cur=Engine.id(),playing=Engine.isPlaying();
+    $$('.scard').forEach(b=>{const on=cur===b.dataset.scene;
+      b.classList.toggle('playing',on);
+      b.querySelector('.st').innerHTML=on&&playing?EQ:IC.play;});
+    $('#mixerBtn').textContent=(cur==='mixer'&&playing)?'Пауза':(cur==='mixer'?'Продолжить':'Играть');}
+  /* --- quick chips --- */
+  const qc=$('#quickChips');
+  ['ocean','fire','piano'].forEach(id=>{const s=SCENES.find(x=>x.id===id);
+    const c=document.createElement('button');c.className='chip';
+    c.innerHTML=s.name;
+    c.addEventListener('click',()=>sceneTap(id));qc.appendChild(c);});
+  /* --- sliders --- */
+  function fill(el){el.style.setProperty('--fill',el.value+'%');
+    const out=$('#out'+el.id.slice(3));if(out)out.textContent=el.value+'%';}
+  function bindRange(id,get,set){const el=$('#'+id);el.value=get();fill(el);
+    el.addEventListener('input',()=>{set(+el.value);fill(el);});}
+  bindRange('volRain',()=>store.vols.rain,v=>Engine.setVol('rain',v));
+  bindRange('volWind',()=>store.vols.wind,v=>Engine.setVol('wind',v));
+  bindRange('volFire',()=>store.vols.fire,v=>Engine.setVol('fire',v));
+  bindRange('volMaster',()=>store.master,v=>{store.master=v;save('lunny_v1',store);Engine.applyMaster();Med.applyVolume();});
+  /* --- hero --- */
+  $('#heroBtn').addEventListener('click',()=>{
+    if(!Engine.id()){Engine.play('rain');Timer.start(45);
+      toast('Сеанс начат: 45 минут тихого дождя');}
+    else if(Engine.isPlaying()){Engine.pause();Timer.pause();}
+    else{Engine.resume();Timer.resume();}
+    renderAll();});
+  function renderHero(){const playing=Engine.isPlaying(),lbl=Engine.label();
+    $('#heroIc').innerHTML=playing?IC.pause:IC.play;
+    $('#heroState').textContent=playing?('Играет: '+lbl):(Engine.isPaused()?'Пауза':'Коснитесь, чтобы уснуть');
+    $('#heroRemain').textContent=Timer.run?('до сна: '+fmtMS(Timer.remain))
+      :(Timer.paused?('пауза · '+fmtMS(Timer.remain)):'сеанс 45 минут');
+    const C=270.2,active=playing||Timer.run||Timer.paused;
+    const frac=active&&Timer.total?clamp(Timer.remain/Timer.total,0,1):(playing?1:0);
+    const ring=$('#heroRing');
+    ring.style.strokeDashoffset=C*(1-frac);ring.style.opacity=active?1:0;}
+  /* --- now playing pill --- */
+  function renderNp(){const np=$('#np');
+    if(Med.isPlaying()){np.classList.add('show');
+      $('#npName').textContent='Медитация · '+Med.label();
+      $('#npRemain').textContent='−'+fmtMS(Med.remainSec());
+      return;}
+    const lbl=Engine.label();
+    if(lbl){np.classList.add('show');$('#npName').textContent=lbl;
+      $('#npRemain').textContent=(Timer.run||Timer.paused)?fmtMS(Timer.remain):'∞';
+      return;}
+    if(Med.active()){np.classList.add('show');
+      $('#npName').textContent='Медитация · '+Med.label();
+      $('#npRemain').textContent='пауза';
+      return;}
+    np.classList.remove('show');}
+  $('#np').addEventListener('click',()=>tab(Med.active()?'meditation':'timer'));
+  $('#npStop').addEventListener('click',e=>{e.stopPropagation();
+    if(Med.active()){Med.stop();toast('Воспроизведение остановлено');return;}
+    Engine.stopAll(.8);Timer.stop();renderAll();toast('Воспроизведение остановлено');});
+  /* --- timer page --- */
+  let selMin=30;
+  function renderPresets(){const pc=$('#presetChips');pc.innerHTML='';
+    PRESETS.forEach(m=>{const c=document.createElement('button');
+      c.className='chip'+(m===selMin?' on':'');c.textContent=m+' мин';
+      c.addEventListener('click',()=>{selMin=m;
+        if(Timer.run){Timer.start(m);toast('Таймер перезапущен: '+m+' минут');}
+        else if(Timer.paused)Timer.stop();
+        renderAll();});
+      pc.appendChild(c);});}
+  $('#timerStart').addEventListener('click',()=>{
+    if(Timer.run){Timer.pause();Engine.pause();}
+    else if(Timer.paused){Engine.resume();Timer.resume();}
+    else{if(!Engine.id()&&!Med.isPlaying())Engine.play('rain');
+      else if(Engine.isPaused())Engine.resume();
+      Timer.start(selMin);}
+    renderAll();});
+  $('#timerPlus').addEventListener('click',()=>{
+    if(Timer.run||Timer.paused){Timer.add(5);toast('+5 минут');}
+    else toast('Сначала запустите таймер');});
+  $('#timerStop').addEventListener('click',()=>{
+    if(Timer.run||Timer.paused){Timer.stop();toast('Таймер выключен');}
+    Engine.stopAll(1);renderAll();});
+  const RING=653.45;
+  function renderTimer(){const run=Timer.run,paused=Timer.paused;
+    const rem=run?Timer.remain:(paused?Timer.remain:selMin*60);
+    $('#timerRemain').textContent=fmtMS(rem);
+    $('#timerScene').textContent=Engine.label()||'звук не выбран';
+    const frac=(run||paused)&&Timer.total?clamp(Timer.remain/Timer.total,0,1):1;
+    $('#ringFg').style.strokeDashoffset=RING*(1-frac);
+    $('#ringFg').style.opacity=(run||paused)?1:.35;
+    $('#timerStart').textContent=run?'Пауза':(paused?'Продолжить':'Начать');}
+  /* --- stories list --- */
+  const list=$('#storyList');
+  STORIES.forEach(st=>{const d=document.createElement('div');d.className='card story';
+    d.innerHTML='<div class="cover" style="background:linear-gradient(150deg,hsl('+st.hue+' 45% 30%),hsl('+((st.hue+40)%360)+' 50% 14%))">'+IC.book+'</div>'
+      +'<div><b>'+st.title+'</b><div class="smin">'+st.min+' минут</div>'
+      +'<span class="mini">голос рассказчика</span><span class="mini">фоновый гул</span></div>';
+    d.addEventListener('click',()=>Story.open(st));list.appendChild(d);});
+  $('#stPlay').addEventListener('click',()=>{Story.toggle();renderAll();});
+  $('#stStop').addEventListener('click',()=>{Story.stop();$('#story').classList.remove('open');renderAll();});
+  $('#storyBack').addEventListener('click',()=>{$('#story').classList.remove('open');renderAll();});
+  /* --- account --- */
+  function renderAccount(){$('#stStreak').textContent=stats.streak;
+    $('#stTotal').textContent=fmtMin(stats.totalMin);
+    $('#stToday').textContent=stats.days[todayKey()]||0;
+    $('#stNights').textContent=Object.keys(stats.days).length;
+    const wb=$('#weekBars');wb.innerHTML='';
+    const days=[];for(let i=6;i>=0;i--){const d=new Date(Date.now()-i*864e5);
+      days.push({k:d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),
+        lbl:['вс','пн','вт','ср','чт','пт','сб'][d.getDay()]});}
+    const vals=days.map(d=>stats.days[d.k]||0),mx=Math.max(10,...vals);
+    days.forEach((d,i)=>{const v=vals[i],b=document.createElement('div');
+      b.className='bar'+(v?'':' zero');
+      b.innerHTML='<i style="height:'+Math.round(6+94*v/mx)+'%"></i><span>'+d.lbl+'</span>';
+      wb.appendChild(b);});
+    const al=$('#achList');al.innerHTML='';
+    ACHS.forEach(a=>{const un=stats.unlocks.includes(a.id);
+      const d=document.createElement('div');d.className='ach'+(un?'':' locked');
+      d.innerHTML='<div class="aic">'+IC.spark+'</div><div><b>'+a.name+'</b><span>'+a.sub+'</span></div>';
+      al.appendChild(d);});}
+  $('#resetBtn').addEventListener('click',()=>{
+    if(confirm('Сбросить статистику сна?')){
+      stats={streak:0,lastDay:null,totalMin:0,days:{},unlocks:[]};
+      saveStats();renderAccount();toast('Статистика сброшена');}});
+  /* --- moon card --- */
+  function renderMoon(){const p=Sky.moonXY().p;
+    $('#moonPct').textContent=Math.round(p*100);
+    const hrs=(p<=.5?(.5-p):(1-p))*12;
+    $('#moonSub').textContent=p<.03?'Луна поднимается над горизонтом'
+      :(p>.97?'Луна опускается за горизонт'
+      :(p<.5?'Восходит · зенит через '+fmtMin(hrs*60):'К закату · '+fmtMin(hrs*60)));}
+  function renderAll(){renderScenes();renderHero();renderNp();renderTimer();renderMute();renderMoon();renderPresets();Med.render();}
+  return{toast,tab,toggleImmersive,renderAll,renderTimer,renderHero,renderNp,renderAccount,renderMoon,renderMute};
+})();
+
+/* ================= boot ================= */
+(function boot(){
+  UI.renderAccount();UI.renderAll();
+  const d=new Date();$('#clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+  /* clock + per-second UI tick + minutes accounting */
+  setInterval(()=>{
+    const n=new Date();$('#clock').textContent=pad(n.getHours())+':'+pad(n.getMinutes());
+    if(Engine.isPlaying()||Med.isPlaying()){secAcc++;if(secAcc>=60){secAcc=0;addMinute();}}
+    if(Timer.run)UI.renderTimer();
+    UI.renderHero();UI.renderNp();UI.renderMoon();Med.render();
+  },1000);
+  /* deep link: #library etc. */
+  const h=(location.hash||'').replace('#','');
+  if(['home','library','stories','meditation','timer','account'].includes(h))UI.tab(h);
+  /* PWA service worker */
+  if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))
+    addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>
