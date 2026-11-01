@@ -371,6 +371,28 @@ input[type=range]::-moz-range-thumb{width:20px;height:20px;border:none;border-ra
           <div class="chips" id="medSpeed" style="margin-top:6px"></div>
         </section>
 
+        <div class="secTitle">Частотные программы · опорно-двигательный аппарат</div>
+        <p class="pageSub">Точные тоны и бинауральные ритмы для костей, суставов, позвоночника и мышц. Лучше всего — в наушниках.</p>
+        <div class="grid" id="freqGrid"></div>
+
+        <div class="card">
+          <div class="mixHead">
+            <div class="mixTitle">Настройка тона</div>
+            <label class="chip" style="cursor:pointer" id="frBinWrap">
+              <input type="checkbox" id="frBin" checked style="accent-color:#93a8ff;margin:0 6px 0 0">Бинауральный режим
+            </label>
+          </div>
+          <div class="srow"><span class="sname">Несущая</span><input type="range" id="frFreq" min="20" max="1000" step="0.5" value="110" aria-label="Несущая частота"><output id="frFreqOut">110 Гц</output></div>
+          <div class="srow"><span class="sname">Ритм</span><input type="range" id="frBeat" min="0.5" max="40" step="0.5" value="7.5" aria-label="Бинауральный ритм"><output id="frBeatOut">7,5 Гц</output></div>
+          <div class="chips" id="frDur" style="margin-top:10px"></div>
+          <div class="trow" style="margin-top:10px">
+            <button id="frPlay" class="btn primary">Играть</button>
+            <button id="frStop" class="btn ghost">Стоп</button>
+          </div>
+          <div class="pageSub" id="frState" style="margin:8px 0 0">Выберите программу или задайте тон вручную</div>
+          <p class="hint">Вспомогательная практика релаксации — не медицинское устройство.<br>При травмах и болезнях обратитесь к врачу.</p>
+        </div>
+
         <div class="card mooncard">
           <div class="moonic lotusic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.6c1.6 1.8 2.4 3.6 2.4 5.4 0 1.6-.8 3-2.4 4.3-1.6-1.3-2.4-2.7-2.4-4.3 0-1.8.8-3.6 2.4-5.4z"/><path d="M12 14.3c-2.4-1.8-4.9-2.3-7.6-1.5 2 3.4 4.6 5.1 7.6 5.1s5.6-1.7 7.6-5.1c-2.7-.8-5.2-.3-7.6 1.5z"/></svg></div>
           <div>
@@ -993,6 +1015,130 @@ const Med=(()=>{
     label:()=>TITLE};
 })();
 
+/* ================= frequency programs (musculoskeletal) ================= */
+const FreqTone=(()=>{
+  const PROGS=[
+   {id:'bones',  name:'Кости · заживление',       sub:'110 Гц · ритм Шумана 7,83 Гц',    f:110, beat:7.83, dur:20,
+    desc:'110 Гц ассоциируется с активностью остеобластов; ритм 7,83 Гц даёт глубокую релаксацию.'},
+   {id:'joints', name:'Суставы · хрящевая ткань', sub:'174 Гц · тета-ритм 4 Гц',         f:174, beat:4,    dur:15,
+    desc:'174 Гц — «частота боли» из сольфеджио-шкалы, традиционно снимает суставной дискомфорт.'},
+   {id:'spine',  name:'Позвоночник · расслабление',sub:'60 Гц · тета-ритм 5 Гц',         f:60,  beat:5,    dur:15,
+    desc:'Низкая несущая 60 Гц мягко прорабатывает глубокие мышцы спины.'},
+   {id:'muscles',name:'Мышцы · восстановление',   sub:'432 Гц · альфа-ритм 8 Гц',        f:432, beat:8,    dur:15,
+    desc:'432 Гц успокаивает; альфа-ритм 8 Гц переводит мышцы в режим восстановления.'},
+   {id:'anti',   name:'Противовоспалительная',    sub:'285 Гц · дельта-ритм 2 Гц',       f:285, beat:2,    dur:20,
+    desc:'285 Гц — тон «восстановления тканей»; дельта-ритм 2 Гц для глубокой регенерации.'},
+   {id:'relax',  name:'Общая релаксация ОДА',     sub:'528 Гц · альфа-ритм 10 Гц',       f:528, beat:10,   dur:15,
+    desc:'528 Гц с альфа-ритмом 10 Гц — мягкий тонус и расслабление всего опорно-двигательного аппарата.'},
+  ];
+  const DURS=[10,20,40,0];
+  const EQ='<span class="eq"><i></i><i></i><i></i></span>';
+  if(store.freq==null){store.freq={f:110,beat:7.83,bin:true,dur:20};save('lunny_v1',store);}
+  const FS=store.freq;
+  let ac=null,g=null,oL=null,oR=null,pL=null,pR=null,cur=null,started=false,endAt=0,tickH=null,internal=false;
+
+  function volK(){return (store.muted?0:store.master/100*.95)*.4;}
+  function applyVolume(){if(g)g.gain.setTargetAtTime(volK(),ac.currentTime,.15);}
+  function freqs(){return[FS.f,FS.f+(FS.bin?FS.beat:0)];}
+
+  function build(){
+    ac=new (window.AudioContext||window.webkitAudioContext)();
+    g=ac.createGain();g.gain.value=0;
+    const comp=ac.createDynamicsCompressor();comp.threshold.value=-22;comp.knee.value=26;comp.ratio.value=4;
+    g.connect(comp);comp.connect(ac.destination);
+    oL=ac.createOscillator();oR=ac.createOscillator();
+    oL.type='sine';oR.type='sine';
+    pL=ac.createStereoPanner?ac.createStereoPanner():ac.createGain();
+    pR=ac.createStereoPanner?ac.createStereoPanner():ac.createGain();
+    if(pL.pan)pL.pan.value=-1;if(pR.pan)pR.pan.value=1;
+    oL.connect(pL).connect(g);oR.connect(pR).connect(g);
+    const[a,b]=freqs();oL.frequency.value=a;oR.frequency.value=b;
+    oL.start();oR.start();
+  }
+  function applyFreqs(){if(!ac)return;const t=ac.currentTime,[a,b]=freqs();
+    oL.frequency.setTargetAtTime(a,t,.05);oR.frequency.setTargetAtTime(b,t,.05);}
+  function play(){
+    internal=true;try{Med.stop();Engine.stopAll(.8);Timer.stop();}finally{internal=false;}
+    if(!ac)build();
+    if(ac.state==='suspended')ac.resume();
+    applyFreqs();g.gain.setTargetAtTime(volK(),ac.currentTime,.4);
+    started=true;
+    clearInterval(tickH);
+    if(FS.dur>0){endAt=Date.now()+FS.dur*60000;
+      tickH=setInterval(()=>{
+        const left=(endAt-Date.now())/1000;
+        if(left<=3){if(g)g.gain.setTargetAtTime(0,ac.currentTime,1.1);}
+        if(left<=0){stop();UI.toast('Частотная сессия завершена');}},500);}
+    else endAt=0;
+    render();UI.renderAll();
+  }
+  function stop(){
+    started=false;cur=null;clearInterval(tickH);tickH=null;
+    if(ac){g.gain.setTargetAtTime(0,ac.currentTime,.3);}
+    render();UI.renderAll();
+  }
+  function toggle(){started?stop():play();}
+  function select(p){cur=p;FS.f=p.f;FS.beat=Math.round(p.beat*2)/2;FS.dur=p.dur;save('lunny_v1',store);
+    syncInputs();
+    $('#frState').textContent=p.name+' — '+p.desc;
+    if(!started)play();
+    else{applyFreqs();render();}
+  }
+  /* --- UI --- */
+  function syncInputs(){
+    const fr=$('#frFreq'),bt=$('#frBeat');
+    fr.value=FS.f;bt.value=FS.beat;bt.disabled=!FS.bin;
+    $('#frBin').checked=FS.bin;
+    fr.style.setProperty('--fill',((FS.f-20)/980*100)+'%');
+    bt.style.setProperty('--fill',((FS.beat-.5)/39.5*100)+'%');
+    $('#frFreqOut').textContent=FS.f.toFixed(1).replace('.',',')+' Гц';
+    $('#frBeatOut').textContent=FS.beat.toFixed(1).replace('.',',')+' Гц';
+    $$('#frDur .chip').forEach(c=>c.classList.toggle('on',+c.dataset.d===FS.dur));
+  }
+  const grid=$('#freqGrid');
+  PROGS.forEach(p=>{const b=document.createElement('button');
+    b.className='card scard';b.dataset.fr=p.id;
+    b.innerHTML='<span class="ic">'+IC.wave+'</span><b>'+p.name+'</b><span class="sub">'+p.sub+'</span><span class="st">'+IC.play+'</span>';
+    b.addEventListener('click',()=>select(p));grid.appendChild(b);});
+  const dc=$('#frDur');
+  DURS.forEach(d=>{const c=document.createElement('button');c.className='chip';c.dataset.d=d;
+    c.textContent=d?d+' мин':'без лимита';
+    c.addEventListener('click',()=>{FS.dur=d;save('lunny_v1',store);syncInputs();
+      if(started){if(d>0){endAt=Date.now()+d*60000;clearInterval(tickH);
+        tickH=setInterval(()=>{const left=(endAt-Date.now())/1000;
+          if(left<=3&&g)g.gain.setTargetAtTime(0,ac.currentTime,1.1);
+          if(left<=0){stop();UI.toast('Частотная сессия завершена');}},500);}
+        else{clearInterval(tickH);tickH=null;endAt=0;g.gain.setTargetAtTime(volK(),ac.currentTime,.4);}}
+      render();});
+    dc.appendChild(c);});
+  $('#frFreq').addEventListener('input',e=>{FS.f=+e.target.value;save('lunny_v1',store);syncInputs();applyFreqs();});
+  $('#frBeat').addEventListener('input',e=>{FS.beat=+e.target.value;save('lunny_v1',store);syncInputs();applyFreqs();});
+  $('#frBin').addEventListener('change',e=>{FS.bin=e.target.checked;save('lunny_v1',store);syncInputs();applyFreqs();});
+  $('#frPlay').addEventListener('click',toggle);
+  $('#frStop').addEventListener('click',()=>{stop();UI.toast('Тон выключен');});
+  function remainSec(){return endAt?Math.max(0,(endAt-Date.now())/1000):0;}
+  function render(){
+    const playing=started&&ac&&ac.state==='running';
+    $$('#freqGrid .scard').forEach(b=>{const on=cur&&b.dataset.fr===cur.id;
+      b.classList.toggle('playing',on&&playing);
+      b.querySelector('.st').innerHTML=on&&playing?EQ:IC.play;});
+    $('#frPlay').textContent=playing?'Пауза':(started?'Продолжить':'Играть');
+    const st=$('#frState');
+    if(playing){const nm=cur?cur.name:'ручной тон';
+      st.textContent=nm+' · '+FS.f.toFixed(1).replace('.',',')+' Гц'
+        +(FS.bin?' ± '+FS.beat.toFixed(1).replace('.',',')+' Гц':'')
+        +(endAt?(' · осталось '+fmtMS(remainSec())):' · без лимита');}
+    else if(!cur&&!$('#frState').textContent.includes('— ')){/* keep program desc */}
+  }
+  syncInputs();
+  return{play,stop,toggle,select,applyVolume,render,syncInputs,
+    isPlaying:()=>!!(started&&ac&&ac.state==='running'),
+    active:()=>started,remainSec,label:()=>cur?cur.name:'Частота '+FS.f.toFixed(0)+' Гц'};
+})();
+/* частоты уступают место другим источникам звука в приложении */
+(function(){const _p=Engine.play;
+  Engine.play=function(id){if(FreqTone.active())FreqTone.stop();return _p(id);};})();
+
 /* ================= stats ================= */
 let secAcc=0;
 function addMinute(){const tk=todayKey();
@@ -1033,7 +1179,7 @@ const UI=(()=>{
   const muteBtn=$('#muteBtn');
   function renderMute(){muteBtn.innerHTML=store.muted?IC.headoff:IC.head;}
   muteBtn.addEventListener('click',()=>{store.muted=!store.muted;save('lunny_v1',store);
-    Engine.applyMaster();Med.applyVolume();renderMute();
+    Engine.applyMaster();Med.applyVolume();FreqTone.applyVolume();renderMute();
     toast(store.muted?'Звук выключен':'Звук включён');});
   /* --- install tip --- */
   let deferred=null;const instCard=$('#installCard');
@@ -1077,7 +1223,7 @@ const UI=(()=>{
   bindRange('volRain',()=>store.vols.rain,v=>Engine.setVol('rain',v));
   bindRange('volWind',()=>store.vols.wind,v=>Engine.setVol('wind',v));
   bindRange('volFire',()=>store.vols.fire,v=>Engine.setVol('fire',v));
-  bindRange('volMaster',()=>store.master,v=>{store.master=v;save('lunny_v1',store);Engine.applyMaster();Med.applyVolume();});
+  bindRange('volMaster',()=>store.master,v=>{store.master=v;save('lunny_v1',store);Engine.applyMaster();Med.applyVolume();FreqTone.applyVolume();});
   /* --- hero --- */
   $('#heroBtn').addEventListener('click',()=>{
     if(!Engine.id()){Engine.play('rain');Timer.start(45);
@@ -1096,6 +1242,11 @@ const UI=(()=>{
     ring.style.strokeDashoffset=C*(1-frac);ring.style.opacity=active?1:0;}
   /* --- now playing pill --- */
   function renderNp(){const np=$('#np');
+    if(FreqTone.isPlaying()){np.classList.add('show');
+      $('#npName').textContent='Частота · '+FreqTone.label();
+      const r=FreqTone.remainSec();
+      $('#npRemain').textContent=r>0?'−'+fmtMS(r):'∞';
+      return;}
     if(Med.isPlaying()){np.classList.add('show');
       $('#npName').textContent='Медитация · '+Med.label();
       $('#npRemain').textContent='−'+fmtMS(Med.remainSec());
@@ -1109,8 +1260,9 @@ const UI=(()=>{
       $('#npRemain').textContent='пауза';
       return;}
     np.classList.remove('show');}
-  $('#np').addEventListener('click',()=>tab(Med.active()?'meditation':'timer'));
+  $('#np').addEventListener('click',()=>tab(Med.active()||FreqTone.active()?'meditation':'timer'));
   $('#npStop').addEventListener('click',e=>{e.stopPropagation();
+    if(FreqTone.active()){FreqTone.stop();toast('Тон выключен');return;}
     if(Med.active()){Med.stop();toast('Воспроизведение остановлено');return;}
     Engine.stopAll(.8);Timer.stop();renderAll();toast('Воспроизведение остановлено');});
   /* --- timer page --- */
@@ -1196,9 +1348,9 @@ const UI=(()=>{
   /* clock + per-second UI tick + minutes accounting */
   setInterval(()=>{
     const n=new Date();$('#clock').textContent=pad(n.getHours())+':'+pad(n.getMinutes());
-    if(Engine.isPlaying()||Med.isPlaying()){secAcc++;if(secAcc>=60){secAcc=0;addMinute();}}
+    if(Engine.isPlaying()||Med.isPlaying()||FreqTone.isPlaying()){secAcc++;if(secAcc>=60){secAcc=0;addMinute();}}
     if(Timer.run)UI.renderTimer();
-    UI.renderHero();UI.renderNp();UI.renderMoon();Med.render();
+    UI.renderHero();UI.renderNp();UI.renderMoon();Med.render();FreqTone.render();
   },1000);
   /* deep link: #library etc. */
   const h=(location.hash||'').replace('#','');
