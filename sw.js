@@ -1,5 +1,5 @@
 /* Лунный сон — service worker: офлайн-кэш приложения */
-const VERSION = 'lunny-son-v1.2.1';
+const VERSION = 'lunny-son-v1.2.2';
 const ASSETS = [
   './',
   './index.html',

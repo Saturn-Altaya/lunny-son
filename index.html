@@ -922,6 +922,9 @@ const Story={
 const Med=(()=>{
   const TITLE='Утренняя медитация на изобилие';
   const RATES=[.75,1,1.25];
+  /* плавная концовка: практика заканчивается на 22:36, хвост записи обрезается */
+  const END_AT=22*60+36, END_FADE=8;
+  let endEarlyFired=false;
   const A=new Audio();
   let started=false,failed=false,fadeK=null,fadeH=null,internal=false;
   A.preload='metadata';
@@ -937,6 +940,7 @@ const Med=(()=>{
       if(p>=1){stopFade();A.pause();}},50);}
   function play(){
     if(failed){UI.toast('Аудиофайл не найден — откройте приложение из папки целиком');return;}
+    endEarlyFired=false;
     internal=true;try{Engine.stopAll(.8);Timer.stop();}finally{internal=false;}
     stopFade();applyVolume();
     const p=A.play();if(p&&p.catch)p.catch(()=>{});
@@ -945,12 +949,20 @@ const Med=(()=>{
   function toggle(){if(A.paused)play();else pause();}
   function stop(){A.pause();try{A.currentTime=0;}catch(e){}
     started=false;stopFade();applyVolume();render();UI.renderAll();}
+  function earlyEnd(){
+    if(endEarlyFired)return;endEarlyFired=true;
+    fadePause(END_FADE);
+    setTimeout(()=>{A.pause();try{A.currentTime=0;}catch(e){}
+      started=false;stopFade();applyVolume();render();UI.renderAll();
+      UI.toast('Медитация завершена. Прекрасного дня');},END_FADE*1000);
+  }
   function seekBy(sec){const d=A.duration;if(!isFinite(d)||d<=0)return;
     A.currentTime=clamp(A.currentTime+sec,0,d);render();}
   function setRate(r){A.playbackRate=r;
     if(store.medRate!==r){store.medRate=r;save('lunny_v1',store);}
     render();}
   function render(){
+    if(!A.paused&&!failed&&isFinite(A.duration)&&A.currentTime>=END_AT-.1)earlyEnd();
     const playing=!A.paused,d=A.duration,has=isFinite(d)&&d>0;
     const ic=$('#medIc');if(ic)ic.innerHTML=playing?IC.pause:IC.play;
     const st=$('#medState');
@@ -958,17 +970,17 @@ const Med=(()=>{
       :(playing?'Играет':(started?'Пауза':'Коснитесь, чтобы начать'));
     const rem=$('#medRemain');
     if(rem)rem.textContent=failed?'проверьте папку audio'
-      :(has?('осталось '+fmtMS(d-A.currentTime)):'медитация утра');
+      :(has?('осталось '+fmtMS(Math.min(d,END_AT)-A.currentTime)):'медитация утра');
     const ring=$('#medRing');
-    if(ring){const f=has?clamp(A.currentTime/d,0,1):0;
+    if(ring){const f=has?clamp(A.currentTime/END_AT,0,1):0;
       ring.style.strokeDashoffset=270.2*(1-f);ring.style.opacity=1;}
     const seek=$('#medSeek');
     if(seek){if(has&&!seekDragging)seek.value=Math.round(A.currentTime/d*1000);
       seek.style.setProperty('--fill',((has?A.currentTime/d:0)*100)+'%');
       seek.disabled=!has;}
     const cur=$('#medCur');if(cur)cur.textContent=fmtMS(A.currentTime);
-    const tot=$('#medTotal');if(tot&&has)tot.textContent=fmtMS(d);
-    const dur=$('#medDur');if(dur&&has)dur.textContent=fmtMin(d/60);
+    const tot=$('#medTotal');if(tot&&has)tot.textContent=fmtMS(Math.min(d,END_AT));
+    const dur=$('#medDur');if(dur&&has)dur.textContent=fmtMin(Math.min(d,END_AT)/60);
     $$('#medSpeed .chip').forEach(c=>c.classList.toggle('on',+c.dataset.r===A.playbackRate));}
   /* --- элементы управления страницы --- */
   $('#medBtn').addEventListener('click',toggle);
@@ -1009,9 +1021,10 @@ const Med=(()=>{
   Engine.stopAll=function(f=1.1){if(!internal)fadePause(f);return _stopAll(f);};
   Engine.setFade=function(k){_setFade(k);applyFade(k);};
   return{TITLE,play,pause,toggle,stop,seekBy,setRate,applyVolume,applyFade,render,
+    audioEl:()=>A,
     isPlaying:()=>!A.paused,
     active:()=>started||!A.paused,
-    remainSec:()=>isFinite(A.duration)?Math.max(0,A.duration-A.currentTime):0,
+    remainSec:()=>isFinite(A.duration)?Math.max(0,Math.min(A.duration,END_AT)-A.currentTime):0,
     label:()=>TITLE};
 })();
 
